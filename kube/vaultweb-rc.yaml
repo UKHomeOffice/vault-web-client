@@ -17,10 +17,22 @@ spec:
       - name: vaultweb
         image: quay.io/ukhomeofficedigital/vaultweb:latest
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 5000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         ports:
         - containerPort: 5000
         env:
           - name: VAULT_SERVER
-            value: $VAULT_URL
+            value: $VAULT_SERVER
           - name: VAULT_TOKEN
-            value: $TOKEN
+            value: $VAULT_TOKEN
+          - name: VERIFY
+            value: "False"
