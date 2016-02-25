@@ -28,7 +28,7 @@ def read():
     try:
         resp = read_key(key)
         return jsonify(resp)
-    except Exception, e:
+    except Exception as e:
         return jsonify(key=str(e))
 
 
