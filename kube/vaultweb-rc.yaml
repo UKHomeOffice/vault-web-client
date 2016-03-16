@@ -22,7 +22,7 @@ spec:
             path: /healthcheck
             port: 5000
           initialDelaySeconds: 15
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         resources:
           limits:
             memory: "128Mi"

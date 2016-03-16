@@ -9,7 +9,7 @@ import ast
 from flask import Flask, jsonify, request, abort
 
 app = Flask(__name__)
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 
 
 @app.route("/")
@@ -19,6 +19,24 @@ def hello():
         {
             'message': 'Well, Hello! I am  vaultweb',
             'version': VERSION})
+
+
+@app.route("/readValue")
+def read_value():
+    """Read KVs from Vault inside a value attr."""
+    key = request.args.get('key')
+    try:
+        resp = read_key(key)
+        val = resp['val']
+        data = val['data']
+        value = data['value']
+        entries = value.split()
+        list_val = []
+        for entry in entries:
+            list_val.append(entry)
+        return jsonify(resp)
+    except Exception as e:
+        return jsonify(key=str(e))
 
 
 @app.route("/read")
