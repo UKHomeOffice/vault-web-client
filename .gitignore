@@ -68,3 +68,5 @@ web/bower_components/
 web/tmp
 .DS_Store
 .ide
+
+web/app/bower_components
