@@ -9,7 +9,9 @@ import ast
 from flask import Flask, jsonify, request, abort
 
 app = Flask(__name__)
-VERSION = '0.0.3'
+VERSION = '0.0.4'
+
+client = hvac.Client()
 
 
 @app.route("/")
@@ -19,6 +21,22 @@ def hello():
         {
             'message': 'Well, Hello! I am  vaultweb',
             'version': VERSION})
+
+
+@app.route("/login/token", methods=['POST'])
+def login_token():
+    """Login to Vault using a token."""
+    host = request.form['host']
+    token = request.form['token']
+    client = hvac.Client(
+        url=host,
+        token=token,
+        verify=ast.literal_eval(os.environ['VERIFY']))
+
+    if client.is_authenticated():
+        return 200
+    else:
+        return 401
 
 
 @app.route("/readValue")
