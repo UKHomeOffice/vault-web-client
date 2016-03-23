@@ -23,13 +23,13 @@ def hello():
             'version': VERSION})
 
 
-@app.route("/login/token", methods=['POST'])
+@app.route("/validate/token", methods=['POST'])
 def login_token():
     """Login to Vault using a token."""
-    host = request.form['host']
+    url = request.form['url']
     token = request.form['token']
     client = hvac.Client(
-        url=host,
+        url=url,
         token=token,
         verify=ast.literal_eval(os.environ['VERIFY']))
 
@@ -43,8 +43,10 @@ def login_token():
 def read_value():
     """Read KVs from Vault inside a value attr."""
     key = request.args.get('key')
+    host = os.environ['VAULT_URL'],
+    token = os.environ['VAULT_TOKEN'],
     try:
-        resp = read_key(key)
+        resp = read_key(key, host, token)
         val = resp['val']
         data = val['data']
         value = data['value']
@@ -61,18 +63,20 @@ def read_value():
 def read():
     """Read KVs from Vault."""
     key = request.args.get('key')
+    url = os.environ['VAULT_URL'],
+    token = os.environ['VAULT_TOKEN'],
     try:
-        resp = read_key(key)
+        resp = read_key(key, url, token)
         return jsonify(resp)
     except Exception as e:
         return jsonify(key=str(e))
 
 
-def read_key(key):
+def read_key(key, url, token):
     """Read key from Vault."""
     client = hvac.Client(
-        url=os.environ['VAULT_SERVER'],
-        token=os.environ['VAULT_TOKEN'],
+        url=url,
+        token=token,
         verify=ast.literal_eval(os.environ['VERIFY']))
     val = client.read(key)
     app.logger.debug(val)
@@ -90,7 +94,7 @@ def write():
     lease = request.form["lease"]
 
     client = hvac.Client(
-        url=os.environ['VAULT_SERVER'],
+        url=os.environ['VAULT_URL'],
         token=os.environ['VAULT_TOKEN'],
         verify=ast.literal_eval(os.environ['VERIFY']))
     obj = {pair_key: pair_value, "lease": lease}
@@ -102,13 +106,26 @@ def write():
 def health():
     """Healthcheck that verifies if the service can talk to Vault."""
     client = hvac.Client(
-        url=os.environ['VAULT_SERVER'],
+        url=os.environ['VAULT_URL'],
         token=os.environ['VAULT_TOKEN'],
         verify=ast.literal_eval(os.environ['VERIFY']))
     if client:
         return "ok", 200
     else:
         abort(409)
+
+
+@app.route("/login/read")
+def read_with_login():
+    """Read KVs from Vault."""
+    key = request.args.get('key')
+    host = request.headers.get('VAULT_URL')
+    token = request.headers.get('VAULT_TOKEN')
+    try:
+        resp = read_key(key, host, token)
+        return jsonify(resp)
+    except Exception as e:
+        return jsonify(key=str(e))
 
 
 if __name__ == "__main__":
